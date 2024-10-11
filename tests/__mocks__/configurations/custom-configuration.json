@@ -1,0 +1,32 @@
+{
+  "logLevel": "debug",
+  "evmNetworkId": 100,
+  "evmPrivateEncrypted": "1234",
+  "erc20RewardToken": "0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d",
+  "incentives": {
+    "requirePriceLabel": true,
+    "contentEvaluator": {},
+    "userExtractor": { "enabled": true, "redeemTask": true },
+    "dataPurge": {},
+    "formattingEvaluator": {
+      "multipliers": [
+        { "role": ["ISSUE_SPECIFICATION"], "multiplier": 3, "rewards": { "wordValue": 0.1 } },
+        {
+          "role": ["ISSUE_AUTHOR", "ISSUE_COLLABORATOR", "PULL_COLLABORATOR"],
+          "multiplier": 1,
+          "rewards": { "wordValue": 0.1 }
+        },
+        { "role": ["ISSUE_CONTRIBUTOR", "PULL_CONTRIBUTOR"], "multiplier": 0.25, "rewards": { "wordValue": 0.1 } },
+        {
+          "role": ["PULL_SPECIFICATION", "PULL_AUTHOR", "ISSUE_ASSIGNEE", "PULL_ASSIGNEE"],
+          "multiplier": 0,
+          "rewards": { "wordValue": 0 }
+        }
+      ],
+      "wordCountExponent": 0.85
+    },
+    "permitGeneration": { "enabled": true },
+    "githubComment": { "post": true, "debug": false }
+  },
+  "dataCollection": { "maxAttempts": 10, "delayMs": 1000 }
+}
