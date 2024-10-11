@@ -8,6 +8,25 @@ import { formattingEvaluatorConfigurationType } from "../configuration/formattin
 import { githubCommentConfigurationType } from "../configuration/github-comment-config";
 import { permitGenerationConfigurationType } from "../configuration/permit-generation-configuration";
 import { userExtractorConfigurationType } from "../configuration/user-extractor-config";
+import {
+  EmitterWebhookEvent as WebhookEvent,
+  EmitterWebhookEventName as WebhookEventName,
+} from "@octokit/webhooks/dist-types/types";
+import { Context } from "@ubiquity-os/ubiquity-os-kernel";
+import { EnvConfigType } from "./env-type";
+
+export type SupportedEvents = "issues.closed";
+
+export interface PluginInputs<T extends WebhookEventName = SupportedEvents> {
+  stateId: string;
+  eventName: T;
+  eventPayload: WebhookEvent<T>["payload"];
+  settings: string;
+  authToken: string;
+  ref: string;
+}
+
+export type PluginContext = Context<PluginSettings, EnvConfigType, SupportedEvents>;
 
 export const pluginSettingsSchema = T.Object(
   {

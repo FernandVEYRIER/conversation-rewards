@@ -3,27 +3,25 @@ import { collectLinkedMergedPulls } from "./data-collection/collect-linked-pulls
 import { GITHUB_PAYLOAD_LIMIT } from "./helpers/constants";
 import githubCommentModuleInstance from "./helpers/github-comment-module-instance";
 import { getSortedPrices } from "./helpers/label-price-extractor";
-import logger from "./helpers/logger";
-import { returnDataToKernel } from "./helpers/validator";
 import { IssueActivity } from "./issue-activity";
 import { getOctokitInstance } from "./octokit";
-import program from "./parser/command-line";
 import { Processor, Result } from "./parser/processor";
 import { parseGitHubUrl } from "./start";
+import { PluginContext } from "./types/plugin-input";
 
-export async function run() {
-  const { eventPayload, eventName, stateId } = program;
+export async function run(context: PluginContext) {
+  const { payload, eventName, logger } = context;
   if (eventName === "issues.closed") {
-    if (eventPayload.issue.state_reason !== "completed") {
+    if (payload.issue.state_reason !== "completed") {
       return logger.info("Issue was not closed as completed. Skipping.").logMessage.raw;
     }
-    if (!(await preCheck())) {
+    if (!(await preCheck(context))) {
       const result = logger.error("All linked pull requests must be closed to generate rewards.");
       await githubCommentModuleInstance.postComment(result.logMessage.diff);
       return result.logMessage.raw;
     }
     await githubCommentModuleInstance.postComment(logger.ok("Evaluating results. Please wait...").logMessage.diff);
-    const issue = parseGitHubUrl(eventPayload.issue.html_url);
+    const issue = parseGitHubUrl(payload.issue.html_url);
     const activity = new IssueActivity(issue);
     await activity.init();
     if (configuration.incentives.requirePriceLabel && !getSortedPrices(activity.self?.labels).length) {
@@ -46,17 +44,17 @@ export async function run() {
       }
       result = JSON.stringify(resultObject);
     }
-    await returnDataToKernel(process.env.GITHUB_TOKEN, stateId, { result });
+    // await returnDataToKernel(process.env.GITHUB_TOKEN, stateId, { result });
     return result;
   } else {
     return logger.error(`${eventName} is not supported, skipping.`).logMessage.raw;
   }
 }
 
-async function preCheck() {
-  const { eventPayload } = program;
+async function preCheck(context: PluginContext) {
+  const { payload, logger } = context;
 
-  const issue = parseGitHubUrl(eventPayload.issue.html_url);
+  const issue = parseGitHubUrl(payload.issue.html_url);
   const linkedPulls = await collectLinkedMergedPulls(issue);
   logger.debug("Checking open linked pull-requests for", {
     issue,
